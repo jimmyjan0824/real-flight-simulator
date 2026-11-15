@@ -39,7 +39,9 @@ iOS 相關設定（Bundle ID、最低 iOS 15、IL2CPP、只允許橫向、自動
 3. **Unity Hub**：到 <https://unity.com/download> 下載安裝，用 Unity 帳號登入，選 **Personal（免費）** 授權。
 4. **Unity 6 LTS**：Unity Hub → **Installs** → **Install Editor** → 選最新的 **Unity 6 LTS（6000.x，標示 LTS）**。
    在模組清單中**務必勾選 `iOS Build Support`**（Android、WebGL 等先不用勾）。
-   > 已經裝好但忘了勾：Installs → 該版本右邊齒輪 → Add modules → iOS Build Support。
+   > 已經裝好但忘了勾：Installs → 滑鼠移到該版本那一列 → 最右邊出現的 **⋮**（三個點）→ **Add modules** → 勾 iOS Build Support → Install。
+   > 若 ⋮ 選單裡沒有 Add modules，代表該版本不是用 Hub 安裝的，請改用 Hub 的 **Install Editor** 重新安裝 Unity 6 LTS 並勾選 iOS Build Support。
+   > 確認方式：`/Applications/Unity/Hub/Editor/<版本>/PlaybackEngines/iOSSupport` 資料夾存在即可。
 
 ### 2. 取得專案
 
