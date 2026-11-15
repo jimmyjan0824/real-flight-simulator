@@ -148,12 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70f2b89dd0a954edcbf63d57a8e155ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FlightSim.GameBootstrapper
-  groundSize: 6000
+  groundSize: 20000
   runwayLength: 2000
   runwayWidth: 45
-  orbitRadius: 120
-  orbitHeight: 35
-  orbitSpeedDegPerSec: 6
+  sceneryBlocks: 220
+  approachDistance: 3300
+  approachSpeedMs: 36
+  glideSlopeDeg: 3
 --- !u!4 &460163885
 Transform:
   m_ObjectHideFlags: 0

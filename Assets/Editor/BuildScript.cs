@@ -105,8 +105,8 @@ public static class BuildScript
     {
         PlayerSettings.companyName = CompanyName;
         PlayerSettings.productName = ProductName;
-        PlayerSettings.bundleVersion = "0.0.1";
-        PlayerSettings.iOS.buildNumber = "1";
+        PlayerSettings.bundleVersion = "0.1.0"; // Stage 1 flight prototype
+        PlayerSettings.iOS.buildNumber = "2";
 
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.iOS, Env("BUNDLE_ID", DefaultBundleId));
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.iOS, ScriptingImplementation.IL2CPP);
