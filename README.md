@@ -54,7 +54,8 @@ cd real-flight-simulator
 ### 3. 第一次用 Unity 開啟
 
 1. Unity Hub → **Projects** → **Add** → **Add project from disk** → 選 `real-flight-simulator` 資料夾。
-2. 專案裡的 `ProjectVersion.txt` 是佔位版本號，Hub 很可能顯示「版本未安裝」。點版本欄，**改選你剛裝的 Unity 6 LTS**，若跳出升級/更換版本確認就按 **Continue / Change Version**。
+2. 專案裡的 `ProjectVersion.txt` 是佔位版本號（6000.0.58f1），Hub 可能顯示「版本未安裝」或跳出「安裝 Unity 6.0 (6000.0.58f1)」視窗並帶有**安全性警訊**。
+   **不要安裝這個舊版**，直接關掉視窗。請確認你已在 Installs 裝好**最新的 Unity 6 LTS**（Hub 裡沒有安全性警訊標籤的那個），然後在 Projects 清單點該專案的「Editor 版本」欄位，**改選你裝好的 Unity 6 LTS**，若跳出升級/更換版本確認就按 **Continue / Change Version**。開啟後 Unity 會把 `ProjectVersion.txt` 改成你的版本，請一起 commit。
 3. 第一次開啟會匯入並產生 `Library/` 和 `ProjectSettings/`，需要幾分鐘。
 4. 開好後，請確認：
    - 下方 **Console 沒有紅色錯誤**。
