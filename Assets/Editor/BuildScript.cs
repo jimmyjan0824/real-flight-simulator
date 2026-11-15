@@ -6,6 +6,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 /// <summary>
 /// Command-line and menu build entry points.
@@ -21,6 +22,7 @@ using UnityEngine;
 public static class BuildScript
 {
     public const string MainScenePath = "Assets/Scenes/Main.unity";
+    public const string RuntimeMaterialPath = "Assets/Resources/FlightSim/DefaultLit.mat";
 
     private const string DefaultBundleId = "com.jimmyjan.flightsimmvp";
     private const string CompanyName = "JimmyJan";
@@ -30,7 +32,11 @@ public static class BuildScript
     // ------------------------------------------------------------------ menu
 
     [MenuItem("FlightSim/Create Or Reset Main Scene")]
-    public static void CreateOrResetMainSceneMenu() => EnsureMainScene(forceRecreate: true);
+    public static void CreateOrResetMainSceneMenu()
+    {
+        EnsureRuntimeMaterial();
+        EnsureMainScene(forceRecreate: true);
+    }
 
     [MenuItem("FlightSim/Apply iOS Player Settings")]
     public static void ApplyIOSSettingsMenu() => ApplyIOSSettings();
@@ -51,6 +57,7 @@ public static class BuildScript
                     throw new Exception("Could not switch to iOS. Is 'iOS Build Support' installed for this Unity version?");
             }
 
+            EnsureRuntimeMaterial();
             EnsureMainScene(forceRecreate: false);
             ApplyIOSSettings();
 
@@ -123,6 +130,34 @@ public static class BuildScript
 
         AssetDatabase.SaveAssets();
         Debug.Log("[BuildScript] iOS player settings applied.");
+    }
+
+    // ------------------------------------------------------------------ materials
+
+    /// <summary>
+    /// Objects are created at runtime, so no scene asset references a lit shader and the
+    /// player build strips it (renders magenta on device). A material under Resources/
+    /// is always included, and pulls its shader into the build with it.
+    /// </summary>
+    public static void EnsureRuntimeMaterial()
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(RuntimeMaterialPath) != null)
+            return;
+
+        // Built-in Render Pipeline (no URP/HDRP package in this project).
+        if (GraphicsSettings.defaultRenderPipeline != null)
+            Debug.LogWarning("[BuildScript] A render pipeline asset is assigned; 'Standard' will render magenta. Update EnsureRuntimeMaterial().");
+        Shader shader = Shader.Find("Standard");
+
+        if (shader == null)
+            throw new Exception("Could not find a lit shader for the runtime material.");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(RuntimeMaterialPath));
+        AssetDatabase.Refresh();
+        var mat = new Material(shader) { name = "DefaultLit", color = Color.white };
+        AssetDatabase.CreateAsset(mat, RuntimeMaterialPath);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[BuildScript] Created {RuntimeMaterialPath} using shader '{shader.name}'");
     }
 
     // ------------------------------------------------------------------ scene

@@ -39,7 +39,9 @@ iOS 相關設定（Bundle ID、最低 iOS 15、IL2CPP、只允許橫向、自動
 3. **Unity Hub**：到 <https://unity.com/download> 下載安裝，用 Unity 帳號登入，選 **Personal（免費）** 授權。
 4. **Unity 6 LTS**：Unity Hub → **Installs** → **Install Editor** → 選最新的 **Unity 6 LTS（6000.x，標示 LTS）**。
    在模組清單中**務必勾選 `iOS Build Support`**（Android、WebGL 等先不用勾）。
-   > 已經裝好但忘了勾：Installs → 該版本右邊齒輪 → Add modules → iOS Build Support。
+   > 已經裝好但忘了勾：Installs → 滑鼠移到該版本那一列 → 最右邊出現的 **⋮**（三個點）→ **Add modules** → 勾 iOS Build Support → Install。
+   > 若 ⋮ 選單裡沒有 Add modules，代表該版本不是用 Hub 安裝的，請改用 Hub 的 **Install Editor** 重新安裝 Unity 6 LTS 並勾選 iOS Build Support。
+   > 確認方式：`/Applications/Unity/Hub/Editor/<版本>/PlaybackEngines/iOSSupport` 資料夾存在即可。
 
 ### 2. 取得專案
 
@@ -52,12 +54,13 @@ cd real-flight-simulator
 ### 3. 第一次用 Unity 開啟
 
 1. Unity Hub → **Projects** → **Add** → **Add project from disk** → 選 `real-flight-simulator` 資料夾。
-2. 專案裡的 `ProjectVersion.txt` 是佔位版本號，Hub 很可能顯示「版本未安裝」。點版本欄，**改選你剛裝的 Unity 6 LTS**，若跳出升級/更換版本確認就按 **Continue / Change Version**。
+2. 專案裡的 `ProjectVersion.txt` 是佔位版本號（6000.0.58f1），Hub 可能顯示「版本未安裝」或跳出「安裝 Unity 6.0 (6000.0.58f1)」視窗並帶有**安全性警訊**。
+   **不要安裝這個舊版**，直接關掉視窗。請確認你已在 Installs 裝好**最新的 Unity 6 LTS**（Hub 裡沒有安全性警訊標籤的那個），然後在 Projects 清單點該專案的「Editor 版本」欄位，**改選你裝好的 Unity 6 LTS**，若跳出升級/更換版本確認就按 **Continue / Change Version**。開啟後 Unity 會把 `ProjectVersion.txt` 改成你的版本，請一起 commit。
 3. 第一次開啟會匯入並產生 `Library/` 和 `ProjectSettings/`，需要幾分鐘。
 4. 開好後，請確認：
    - 下方 **Console 沒有紅色錯誤**。
    - 上方選單出現 **FlightSim**。
-   - 點 **FlightSim → Create Or Reset Main Scene**，會產生 `Assets/Scenes/Main.unity` 並自動開啟。按上方 ▶ Play，應該看到藍天、綠地、灰色跑道和白色中心線，鏡頭慢慢繞著跑道轉，左上角顯示 FPS。
+   - 點 **FlightSim → Create Or Reset Main Scene**，會產生 `Assets/Scenes/Main.unity` 並自動開啟。此時 Scene 分頁是空的（只有 GameBootstrapper）是正常的，因為所有物件都在執行時才產生。按上方 ▶ Play 並切到 **Game** 分頁，應該看到藍天、綠地、灰色跑道和白色中心線，鏡頭慢慢繞著跑道轉，左上角顯示 FPS。
 5. **關閉 Unity Editor**（命令列打包時，同一個專案不能同時被 Editor 開著）。
 6. 把 Unity 產生的檔案 commit 起來（`.meta` 檔一定要 commit）：
    ```bash
