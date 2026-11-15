@@ -60,7 +60,7 @@ cd real-flight-simulator
 4. 開好後，請確認：
    - 下方 **Console 沒有紅色錯誤**。
    - 上方選單出現 **FlightSim**。
-   - 點 **FlightSim → Create Or Reset Main Scene**，會產生 `Assets/Scenes/Main.unity` 並自動開啟。按上方 ▶ Play，應該看到藍天、綠地、灰色跑道和白色中心線，鏡頭慢慢繞著跑道轉，左上角顯示 FPS。
+   - 點 **FlightSim → Create Or Reset Main Scene**，會產生 `Assets/Scenes/Main.unity` 並自動開啟。此時 Scene 分頁是空的（只有 GameBootstrapper）是正常的，因為所有物件都在執行時才產生。按上方 ▶ Play 並切到 **Game** 分頁，應該看到藍天、綠地、灰色跑道和白色中心線，鏡頭慢慢繞著跑道轉，左上角顯示 FPS。
 5. **關閉 Unity Editor**（命令列打包時，同一個專案不能同時被 Editor 開著）。
 6. 把 Unity 產生的檔案 commit 起來（`.meta` 檔一定要 commit）：
    ```bash
