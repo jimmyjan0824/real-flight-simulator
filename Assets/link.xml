@@ -1,0 +1,4 @@
+<!-- Keep physics types that are only created at runtime (GameObject.CreatePrimitive). -->
+<linker>
+  <assembly fullname="UnityEngine.PhysicsModule" preserve="all"/>
+</linker>

@@ -63,6 +63,17 @@ namespace FlightSim
             hud.Init(_aircraft, _judge, _input);
 
             ResetOnRunway();
+            PhysicsUtil.CheckGround(_aircraft.transform.position);
+        }
+
+        private void Update()
+        {
+            // Safety net: if the aircraft ever ends up below the world, put it back on the runway.
+            if (_aircraft != null && _aircraft.transform.position.y < -20f)
+            {
+                Debug.LogError("[FlightSim] Aircraft fell below the ground; resetting. Ground colliders missing?");
+                ResetOnRunway();
+            }
         }
 
         // ---------------------------------------------------------------- resets
@@ -110,11 +121,14 @@ namespace FlightSim
 
         private void BuildGround()
         {
-            var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            // A thin cube (top face at y = 0) rather than a Plane: Plane needs a MeshCollider,
+            // and every collider type must be referenced from code or the iOS build strips it.
+            var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ground.name = "Ground";
             ground.transform.SetParent(transform, false);
-            // Unity's Plane primitive is 10 x 10 m at scale 1.
-            ground.transform.localScale = new Vector3(groundSize / 10f, 1f, groundSize / 10f);
+            ground.transform.localScale = new Vector3(groundSize, 1f, groundSize);
+            ground.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+            PhysicsUtil.EnsureBoxCollider(ground);
             Materials.Tint(ground, new Color(0.30f, 0.42f, 0.22f));
         }
 
@@ -128,6 +142,7 @@ namespace FlightSim
             surface.transform.SetParent(runway.transform, false);
             surface.transform.localScale = new Vector3(runwayWidth, RunwaySurfaceY, runwayLength);
             surface.transform.localPosition = new Vector3(0f, RunwaySurfaceY * 0.5f, 0f);
+            PhysicsUtil.EnsureBoxCollider(surface);
             Materials.Tint(surface, new Color(0.18f, 0.18f, 0.19f));
 
             float halfL = runwayLength * 0.5f;
@@ -169,8 +184,7 @@ namespace FlightSim
             m.transform.SetParent(parent, false);
             m.transform.localScale = size;
             m.transform.localPosition = pos;
-            var c = m.GetComponent<Collider>();
-            if (c != null) DestroyImmediate(c);
+            PhysicsUtil.StripCollider(m);
             Materials.Tint(m, Color.white);
         }
 
@@ -237,6 +251,7 @@ namespace FlightSim
             b.transform.localScale = size;
             b.transform.localPosition = groundPos + Vector3.up * (size.y * 0.5f);
             b.transform.localRotation = Quaternion.Euler(0f, yawDeg, 0f);
+            PhysicsUtil.EnsureBoxCollider(b);
             Materials.Tint(b, color);
         }
 

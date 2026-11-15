@@ -80,15 +80,15 @@ namespace FlightSim
             // Static strut leg from the fuselage down to the wheel (visual only).
             Part(root, gearName + "Leg", attach + new Vector3(0f, -rest * 0.45f, 0f), new Vector3(0.08f, rest * 0.9f, 0.08f), Dark, false);
 
-            // Wheel: a cylinder turned on its side. Its position follows the suspension.
-            var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            // Wheel: a block (cubes only, see PhysicsUtil). Its position follows the suspension.
+            var wheel = GameObject.CreatePrimitive(PrimitiveType.Cube);
             wheel.name = gearName + "Wheel";
             wheel.layer = IgnoreRaycastLayer;
-            StripCollider(wheel);
+            PhysicsUtil.StripCollider(wheel);
             wheel.transform.SetParent(root, false);
             wheel.transform.localPosition = attach + Vector3.down * rest;
-            wheel.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            wheel.transform.localScale = new Vector3(radius * 2f, 0.1f, radius * 2f);
+            wheel.transform.localRotation = Quaternion.identity;
+            wheel.transform.localScale = new Vector3(0.2f, radius * 2f, radius * 2f);
             Materials.Tint(wheel, Tyre);
 
             gear.AddWheel(gearName, attach, steerable, braked, isNose, wheel.transform);
@@ -100,21 +100,14 @@ namespace FlightSim
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = partName;
             go.layer = IgnoreRaycastLayer;
-            if (!keepCollider) StripCollider(go);
+            if (keepCollider) PhysicsUtil.EnsureBoxCollider(go);
+            else PhysicsUtil.StripCollider(go);
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPos;
             go.transform.localRotation = localRot ?? Quaternion.identity;
             go.transform.localScale = size;
             Materials.Tint(go, color);
             return go;
-        }
-
-        private static void StripCollider(GameObject go)
-        {
-            // DestroyImmediate so the collider never takes part in a physics step
-            // (Destroy is deferred to the end of the frame).
-            var c = go.GetComponent<Collider>();
-            if (c != null) Object.DestroyImmediate(c);
         }
     }
 }
