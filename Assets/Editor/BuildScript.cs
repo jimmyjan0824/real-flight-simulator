@@ -24,7 +24,7 @@ public static class BuildScript
     public const string MainScenePath = "Assets/Scenes/Main.unity";
     public const string RuntimeMaterialPath = "Assets/Resources/FlightSim/DefaultLit.mat";
 
-    private const string DefaultBundleId = "com.jimmyjan.flightsimmvp";
+    private const string DefaultBundleId = "com.jimmyjan0824.flightsimmvp";
     private const string CompanyName = "JimmyJan";
     private const string ProductName = "Flight Sim MVP";
     private const string DefaultBuildPath = "build/iOS";
