@@ -6,15 +6,22 @@
 
 ```
 Assets/
-  Scripts/GameBootstrapper.cs   執行時建立相機、太陽光、地面、跑道（含中心線），左上角顯示 FPS
-  Editor/BuildScript.cs         iOS 設定 + 命令列打包（BuildScript.BuildIOS）
-                                 選單：FlightSim > Create Or Reset Main Scene / Apply iOS Player Settings / Build iOS
-  Scenes/Main.unity             （第一次打包時由 BuildScript 自動產生，不用手動建）
-Packages/manifest.json          只用到內建模組，Unity 會自動補齊其餘套件
-ProjectSettings/                目前只放 ProjectVersion.txt，其餘由 Unity 第一次開啟時產生
-scripts/build_ios.sh            命令列打包成 Xcode 專案
+  Scripts/GameBootstrapper.cs        進入點：執行時建立世界、飛機、相機、操控、HUD
+  Scripts/Flight/AircraftController.cs  飛行物理（升力、阻力、推力、重力、三軸力矩、襟翼、配平）
+  Scripts/Flight/LandingGear.cs      射線式起落架（避震彈簧、煞車、前輪轉向）
+  Scripts/Flight/AircraftBuilder.cs  用方塊組出飛機（含碰撞體，用於墜毀判定）
+  Scripts/Flight/LandingJudge.cs     起飛／接地率 FPM／彈跳／停止／墜毀判定
+  Scripts/Controls/FlightInput.cs    觸控搖桿、傾斜操控、油門、按鈕、鍵盤（Editor 測試用）
+  Scripts/CameraRig/FlightCamera.cs  第三人稱追蹤／機頭（座艙）兩種視角
+  Scripts/UI/FlightHud.cs, GuiDraw.cs  2D HUD（空速、高度、升降率、航向、姿態儀）
+  Scripts/World/Runway.cs, Rendering/Materials.cs  跑道資料、不會被剔除的材質
+  Editor/BuildScript.cs              iOS 設定 + 命令列打包（BuildScript.BuildIOS）
+                                     選單：FlightSim > Create Or Reset Main Scene / Apply iOS Player Settings / Build iOS
+  Scenes/Main.unity                  只有一個 GameBootstrapper
+Packages/manifest.json               只用到內建模組
+ProjectSettings/                     Unity 產生的設定（Active Input Handling = 舊版 Input Manager）
+scripts/build_ios.sh                 命令列打包成 Xcode 專案
 ```
-
 iOS 相關設定（Bundle ID、最低 iOS 15、IL2CPP、只允許橫向、自動簽署）都寫在 `BuildScript.ApplyIOSSettings()`，每次打包都會重新套用，所以不用手改 ProjectSettings 的 YAML。
 
 ---
@@ -116,6 +123,75 @@ private const string DefaultBundleId = "com.jimmyjan.flightsimmvp";
 4. 再按一次 Run，或直接點手機上的 App 圖示。
 
 ✅ 看到藍天、草地、跑道、鏡頭繞圈、左上角 FPS → **階段 0 完成！**
+
+---
+
+## 階段 1：飛行原型（完成標準：在 iPhone 上起飛、繞場、降落）
+
+### 畫面與操控（橫向）
+
+| 位置 | 控制 | 說明 |
+| --- | --- | --- |
+| 左邊直條 | **THR 油門** | 手指上下拖曳 |
+| 左側欄 | **TRIM UP / TRIM DN** | 按住調整升降舵配平（UP = 機頭上仰），讓你不用一直拉著搖桿 |
+| 左側欄 | **FLAPS** | 點一下切換襟翼 0° → 10° → 30° |
+| 左側欄 | **BRAKE** | 按住煞車（地面） |
+| 右半邊 | **虛擬搖桿**（觸控模式） | 在右半邊任何地方按下拖曳：左右 = 滾轉，**往下拉 = 機頭上仰**，往上推 = 機頭下俯。在地面時左右也會轉動前輪 |
+| 右上 | **CTRL: TOUCH / TILT** | 切換觸控／傾斜。傾斜模式像方向盤一樣轉手機來滾轉，手機上緣往自己傾 = 拉起。切到傾斜時會以當下姿勢為中立點，可再按 **CENTER** 重設 |
+| 右上 | **VIEW** | 第三人稱 ↔ 機頭（座艙）視角 |
+| 右上 | **APPROACH** | 直接出現在跑道頭外 3.3 km、3° 下滑道上（約 70 kt，襟翼 10°），練降落用 |
+| 右上 | **RESET** | 回到跑道頭 |
+
+HUD：左上是 IAS（空速，節）、ALT（高度，呎）、V/S（升降率，呎/分）、HDG（航向，跑道方向是 000）；下方中間是姿態儀（地平線、俯仰刻度、坡度指標）。失速時會閃紅色 **STALL**。
+
+接地評分（以接地前一刻的下沉率 FPM 計算）：< 120 **BUTTER!**、< 300 **SMOOTH**、< 500 **FIRM**、< 800 **HARD**、≥ 800 起落架損壞（墜毀）。另外會標示前輪先著地、單翼過低、偏離跑道、彈跳次數；完全停止後會顯示接地點離跑道頭距離與偏離中心線多少公尺。翼尖或螺旋槳擦地、機身重撞也會判定墜毀。
+
+> 遊戲內文字暫時用英文（Unity 預設字型在 iOS 上不保證有中文字），中文字型會在之後的階段加入。
+
+### 飛行小抄（第一次飛照這個做）
+
+1. **起飛**：油門推到底 → 保持在中心線（搖桿左右微調前輪）→ 空速到 **55 kt** 輕輕往下拉搖桿 → 機頭抬起約 8–10° 就放鬆，讓它自己爬升。不要拉太猛，超過約 12° 會擦機尾。
+2. **爬升**：維持約 70–80 kt 爬到 **800–1000 ft**，油門可收到 70–80%。按 TRIM UP/DN 調到放手也能大致平飛。
+3. **繞場**：轉彎坡度 15–25° 就好，邊轉邊稍微拉一點維持高度。四個 90° 左轉或右轉繞回來，和跑道平行飛一段（下風邊），再轉兩次對準跑道。跑道頭有白色斑馬線，離跑道頭 300 m 有兩塊大白色瞄準點。
+4. **進場**：放襟翼 30°，油門約 20–30%，空速 **60–70 kt**，下沉率約 **300–500 fpm**，對準中心線瞄準白色瞄準點。
+5. **落地**：離地約 10–20 ft（AGL）時收油門到 0，輕輕往下拉讓機頭微抬（拉平），讓下沉率降到 **300 fpm 以下**再讓主輪接地 → 放鬆搖桿讓前輪落地 → 按住 BRAKE 停下。
+
+想直接練降落：按 **APPROACH**。
+
+### 在你的 Mac 上測試
+
+1. 取得這個分支：
+   ```bash
+   cd ~/Projects/real-flight-simulator
+   git fetch origin
+   git checkout stage1/flight-prototype
+   ```
+2. **先在 Unity Editor 試飛（建議）**：用 Unity Hub 開啟專案 → 等匯入完成，確認 Console 沒有紅字 → 開 `Assets/Scenes/Main.unity` → 按 ▶ Play。
+   Editor 裡可用滑鼠當一根手指，也可以用鍵盤：W/S 或 ↑/↓ 俯仰（S = 拉起）、A/D 或 ←/→ 滾轉、Q/E 方向舵、Left Shift / Left Ctrl 油門、F 襟翼、B 煞車、[ ] 配平、V 視角、M 切換操控、R 重設、T 進場。
+   Game 分頁上方的解析度建議選 **1920x1080** 或其他橫向比例，版面才會跟手機一樣。
+3. Unity 會為新的 `.cs` 檔與資料夾產生 `.meta` 檔，請一起 commit：
+   ```bash
+   git add -A && git commit -m "Add Unity meta files for Stage 1 scripts" && git push
+   ```
+4. **關閉 Unity Editor**，打包並裝到 iPhone（跟階段 0 一樣）：
+   ```bash
+   ./scripts/build_ios.sh
+   ```
+   Xcode 打開後選你的 iPhone → ▶ Run。（Personal Team 簽署 7 天會過期，過期就重新 Run 一次。）
+
+### iPhone 驗收清單
+
+- [ ] App 開啟後看到飛機停在跑道頭，畫面有 HUD、油門條、按鈕，FPS 大約 60
+- [ ] 油門推上去飛機會加速，螺旋槳轉速變快；搖桿左右能讓飛機在跑道上轉向
+- [ ] 55–60 kt 拉起能離地，畫面出現 **TAKEOFF**
+- [ ] 空中滾轉、俯仰正常，方向與直覺一致（往下拉 = 機頭上仰）
+- [ ] 拉太多會出現 **STALL** 並掉高度，放鬆搖桿能改出
+- [ ] VIEW 可切換第三人稱 ↔ 機頭視角
+- [ ] CTRL 切到 TILT 後轉手機可以操控，CENTER 能重設中立
+- [ ] 繞場一圈回到跑道並落地，畫面顯示評分與 FPM；停下後顯示 **LANDED** 與接地資訊
+- [ ] APPROACH 可直接練進場；用力撞地會顯示墜毀，RESET 能重來
+
+測試時請記下：手感太敏感／太鈍、哪裡不直覺、FPS 有沒有掉、任何錯誤畫面（Xcode 下方 Console 的紅字可以直接貼給 Claude）。
 
 ---
 
